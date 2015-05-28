@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Airplane Mode AutoSwitcher</string>
+    <string name="action_settings">Settings</string>
+</resources>
