@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Airplane Mode AutoSwitcher</string>
     <string name="action_settings">Settings</string>
+
+    <string name="label_button_start_enabled">Start AutoSwitcher</string>
+    <string name="label_button_stop_enabled">Stop AutoSwitcher</string>
+    <string name="label_button_start_disabled">AutoSwitcher started</string>
+    <string name="label_button_stop_disabled">AutoSwitcher stopped</string>
 </resources>

@@ -1,17 +1,40 @@
 package com.weezlabs.airplanemodeautoswitcher;
 
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
+
+    private Button mStartButton;
+    private Button mStopButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mStartButton = (Button) findViewById(R.id.start_button);
+        mStopButton = (Button) findViewById(R.id.stop_button);
+        updateButtons();
+    }
+
+    private void updateButtons() {
+        if (Utils.isSignalReceiverWork(this)) {
+            mStartButton.setEnabled(false);
+            mStartButton.setText(getString(R.string.label_button_start_disabled));
+            mStopButton.setEnabled(true);
+            mStopButton.setText(getString(R.string.label_button_stop_enabled));
+
+        } else {
+            mStopButton.setEnabled(false);
+            mStopButton.setText(getString(R.string.label_button_stop_disabled));
+            mStartButton.setEnabled(true);
+            mStartButton.setText(getString(R.string.label_button_start_enabled));
+        }
     }
 
     @Override
@@ -29,5 +52,15 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onClickStartSwitcher(View view) {
+        Utils.setSignalReceiverWork(this, true);
+        updateButtons();
+    }
+
+    public void onClickStopSwitcher(View view) {
+        Utils.setSignalReceiverWork(this, false);
+        updateButtons();
     }
 }
