@@ -7,6 +7,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.weezlabs.airplanemodeautoswitcher.util.PreferenceUtils;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateButtons() {
-        if (Utils.isSignalReceiverWork(this)) {
+        if (PreferenceUtils.isPhoneStateReceiverWork(this)) {
             mStartButton.setEnabled(false);
             mStartButton.setText(getString(R.string.label_button_start_disabled));
             mStopButton.setEnabled(true);
@@ -55,12 +57,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClickStartSwitcher(View view) {
-        Utils.setSignalReceiverWork(this, true);
+        PreferenceUtils.setPhoneStateReceiverWork(this, true);
         updateButtons();
     }
 
     public void onClickStopSwitcher(View view) {
-        Utils.setSignalReceiverWork(this, false);
+        PreferenceUtils.setPhoneStateReceiverWork(this, false);
         updateButtons();
     }
 }

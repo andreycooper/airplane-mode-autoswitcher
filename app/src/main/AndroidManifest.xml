@@ -5,6 +5,9 @@
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 
     <application
         android:allowBackup="true"
@@ -21,14 +24,8 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name=".SignalStrengthReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter android:priority="997">
-                <action android:name="android.intent.action.SIG_STR"/>
-            </intent-filter>
-        </receiver>
+        <service android:name=".PhoneStateService"/>
+
         <receiver
             android:name=".PhoneStateReceiver"
             android:enabled="true"
@@ -36,6 +33,16 @@
             <intent-filter android:priority="999">
                 <action android:name="android.intent.action.SERVICE_STATE"/>
             </intent-filter>
+        </receiver>
+        <!-- for start wakeful intent service from alarm-->
+        <receiver android:name="com.commonsware.cwac.wakeful.AlarmReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="com.commonsware.cwac.wakeful"
+                android:resource="@xml/wakeful"/>
         </receiver>
 
     </application>

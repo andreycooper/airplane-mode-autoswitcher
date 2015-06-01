@@ -9,10 +9,14 @@ import android.telephony.ServiceState;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.commonsware.cwac.wakeful.WakefulIntentService;
+import com.weezlabs.airplanemodeautoswitcher.util.PreferenceUtils;
+
 import java.util.Date;
 
 public class PhoneStateReceiver extends WakefulBroadcastReceiver {
     private static final String LOG_TAG = PhoneStateReceiver.class.getSimpleName();
+
     public static final String KEY_STATE_AFTER_JB_MR2 = "voiceRegState";
     public static final String KEY_STATE_BEFORE_JB_MR2 = "state";
 
@@ -22,42 +26,51 @@ public class PhoneStateReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (!PreferenceUtils.isPhoneStateReceiverWork(context)) {
+            return;
+        }
         String key;
         Bundle bundle = intent.getExtras();
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             key = KEY_STATE_AFTER_JB_MR2;
         } else {
             key = KEY_STATE_BEFORE_JB_MR2;
         }
-        showState(context, bundle, key);
+        handleState(context, bundle, key);
     }
 
-    private void showState(Context context, Bundle bundle, String key) {
+    private void handleState(final Context context, Bundle bundle, String key) {
         int state = bundle.getInt(key);
+        PreferenceUtils.setPhoneState(context, state);
+        final AlarmListener alarmListener = new AlarmListener();
         switch (state) {
             case ServiceState.STATE_IN_SERVICE:
-                Toast.makeText(context, "State: STATE_IN_SERVICE", Toast.LENGTH_SHORT).show();
-                Log.i(LOG_TAG, new Date().toString());
-                Log.i(LOG_TAG, "State: STATE_IN_SERVICE");
+                logState(context, "STATE_IN_SERVICE");
+                WakefulIntentService.cancelAlarms(context);
+                // TODO: send action to IntentService for switch off airplane mode
                 break;
             case ServiceState.STATE_EMERGENCY_ONLY:
-                Toast.makeText(context, "State: STATE_EMERGENCY_ONLY", Toast.LENGTH_SHORT).show();
-                Log.i(LOG_TAG, new Date().toString());
-                Log.i(LOG_TAG, "State: STATE_EMERGENCY_ONLY");
+                logState(context, "STATE_EMERGENCY_ONLY");
+                WakefulIntentService.cancelAlarms(context);
+                // TODO: send action to IntentService for switch off airplane mode
                 break;
             case ServiceState.STATE_OUT_OF_SERVICE:
-                Toast.makeText(context, "State: STATE_OUT_OF_SERVICE", Toast.LENGTH_SHORT).show();
-                Log.i(LOG_TAG, new Date().toString());
-                Log.i(LOG_TAG, "State: STATE_OUT_OF_SERVICE");
+                logState(context, "STATE_OUT_OF_SERVICE");
+                PreferenceUtils.setTimeOutOfService(context, System.currentTimeMillis());
+                WakefulIntentService.scheduleAlarms(alarmListener, context, true);
                 break;
             case ServiceState.STATE_POWER_OFF:
-                Toast.makeText(context, "State: STATE_POWER_OFF", Toast.LENGTH_SHORT).show();
-                Log.i(LOG_TAG, new Date().toString());
-                Log.i(LOG_TAG, "State: STATE_POWER_OFF");
+                logState(context, "STATE_POWER_OFF");
                 break;
             default:
                 break;
         }
+    }
+
+    private void logState(Context context, String state) {
+        Toast.makeText(context, "State: " + state, Toast.LENGTH_SHORT).show();
+        Log.i(LOG_TAG, new Date().toString());
+        Log.i(LOG_TAG, "State: " + state);
     }
 
 }
