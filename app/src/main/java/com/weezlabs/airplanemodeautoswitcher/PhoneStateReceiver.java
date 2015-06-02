@@ -10,7 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.commonsware.cwac.wakeful.WakefulIntentService;
-import com.weezlabs.airplanemodeautoswitcher.util.PreferenceUtils;
+import com.weezlabs.airplanemodeautoswitcher.util.StateUtils;
 
 import java.util.Date;
 
@@ -26,9 +26,10 @@ public class PhoneStateReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!PreferenceUtils.isPhoneStateReceiverWork(context)) {
+        if (!StateUtils.isPhoneStateReceiverWork(context)) {
             return;
         }
+
         String key;
         Bundle bundle = intent.getExtras();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
@@ -41,34 +42,46 @@ public class PhoneStateReceiver extends WakefulBroadcastReceiver {
 
     private void handleState(final Context context, Bundle bundle, String key) {
         int state = bundle.getInt(key);
-        PreferenceUtils.setPhoneState(context, state);
-        final AlarmListener alarmListener = new AlarmListener();
+        StateUtils.setPhoneState(context, state);
+
+        long time = StateUtils.isCheckState(context) ?
+                StateAlarmListener.WAIT_TIME_TO_CHECK : StateAlarmListener.WAIT_TIME_TO_SWITCH_ON;
+        final StateAlarmListener alarmListener = new StateAlarmListener(time);
+
         switch (state) {
             case ServiceState.STATE_IN_SERVICE:
                 logState(context, "STATE_IN_SERVICE");
-                WakefulIntentService.cancelAlarms(context);
-                // TODO: send action to IntentService for switch off airplane mode
+                setNormalWork(context, state);
                 break;
             case ServiceState.STATE_EMERGENCY_ONLY:
                 logState(context, "STATE_EMERGENCY_ONLY");
-                WakefulIntentService.cancelAlarms(context);
-                // TODO: send action to IntentService for switch off airplane mode
+                setNormalWork(context, state);
                 break;
             case ServiceState.STATE_OUT_OF_SERVICE:
                 logState(context, "STATE_OUT_OF_SERVICE");
-                PreferenceUtils.setTimeOutOfService(context, System.currentTimeMillis());
-                WakefulIntentService.scheduleAlarms(alarmListener, context, true);
+                // save last time of STATE_OUT_OF_SERVICE and set alarm for calling WakefulIntentService
+                StateUtils.setTimeOutOfService(context, System.currentTimeMillis());
+                WakefulIntentService.scheduleAlarms(alarmListener, context);
                 break;
             case ServiceState.STATE_POWER_OFF:
                 logState(context, "STATE_POWER_OFF");
+                // receive that state when airplane mode is ON
                 break;
             default:
                 break;
         }
     }
 
+    private void setNormalWork(Context context, int state) {
+        Log.i(LOG_TAG, "Good state received, setting to normal work...");
+        WakefulIntentService.cancelAlarms(context);
+        StateUtils.setPhoneState(context, state);
+        StateUtils.setCheckState(context, false);
+        StateUtils.setAfterAirplaneModeTrigger(context, false);
+    }
+
     private void logState(Context context, String state) {
-        Toast.makeText(context, "State: " + state, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, context.getString(R.string.toast_state, state), Toast.LENGTH_SHORT).show();
         Log.i(LOG_TAG, new Date().toString());
         Log.i(LOG_TAG, "State: " + state);
     }

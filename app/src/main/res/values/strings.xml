@@ -6,4 +6,6 @@
     <string name="label_button_stop_enabled">Stop AutoSwitcher</string>
     <string name="label_button_start_disabled">AutoSwitcher started</string>
     <string name="label_button_stop_disabled">AutoSwitcher stopped</string>
+    <string name="toast_state">State: %1$s</string>
+    <string name="toast_jelly_bean">Can\'t switch Airplane Mode automatically\nTime to switch airplane mode manually!</string>
 </resources>

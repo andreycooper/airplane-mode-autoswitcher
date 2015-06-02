@@ -5,15 +5,13 @@ import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
 
-/**
- * Created by Andrey Bondarenko on 01.06.15.
- */
+
 public final class AirPlaneModeUtils {
     private AirPlaneModeUtils() {
 
     }
 
-    public static void notifyAboutAirPlaneMode(Context context) {
+    private static void notifyAboutAirPlaneMode(Context context) {
         Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
         intent.putExtra("state", isAirplaneModeOn(context));
         context.sendBroadcast(intent);
@@ -34,10 +32,14 @@ public final class AirPlaneModeUtils {
             Settings.System.putInt(
                     context.getContentResolver(),
                     Settings.System.AIRPLANE_MODE_ON, value ? 1 : 0);
+            notifyAboutAirPlaneMode(context);
         } else {
+            // it's not working because Settings.Global is read only
+            // for non system apps!
             Settings.Global.putInt(
                     context.getContentResolver(),
                     Settings.Global.AIRPLANE_MODE_ON, value ? 1 : 0);
+            notifyAboutAirPlaneMode(context);
         }
     }
 }
